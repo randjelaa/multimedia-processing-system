@@ -4,7 +4,6 @@ import com.example.multimedia_processing.entity.User;
 import com.example.multimedia_processing.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.*;
 import org.springframework.stereotype.Service;
 
@@ -28,12 +27,11 @@ public class CustomUserDetailsService
                                 "User not found"
                         ));
 
-        return new org.springframework.security.core.userdetails.User(
+        return new CustomUserPrincipal(
                 user.getEmail(),
                 user.getPassword(),
-                List.of(
-                        new SimpleGrantedAuthority(user.getRole())
-                )
+                user.getId().toString(),
+                List.of()
         );
     }
 }
