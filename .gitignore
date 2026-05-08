@@ -40,9 +40,24 @@ Thumbs.db
 *.pid
 *.seed
 
-# === MINIO / STORAGE ===
-data/
-uploads/
+# === PYTHON ===
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
 
-# python venv
-worker/venv
+# virtual environment
+worker/venv/
+venv/
+
+# pytest / cache
+.pytest_cache/
+.mypy_cache/
+.coverage
+
+# logs / runtime
+*.log
+
+# worker runtime folders (ako se generišu lokalno)
+worker/downloads/
+worker/processed/
