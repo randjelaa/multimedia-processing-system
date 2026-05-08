@@ -43,3 +43,6 @@ Thumbs.db
 # === MINIO / STORAGE ===
 data/
 uploads/
+
+# python venv
+worker/venv
