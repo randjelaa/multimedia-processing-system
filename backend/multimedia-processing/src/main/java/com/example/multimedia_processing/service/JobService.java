@@ -1,5 +1,6 @@
 package com.example.multimedia_processing.service;
 
+import com.example.multimedia_processing.dto.JobMessage;
 import com.example.multimedia_processing.entity.Job;
 import com.example.multimedia_processing.entity.JobStatus;
 import com.example.multimedia_processing.entity.User;
@@ -17,6 +18,7 @@ public class JobService {
 
     private final JobRepository jobRepository;
     private final UserRepository userRepository;
+    private final QueueProducer queueProducer;
 
     public Job createJob(
             String originalFileName,
@@ -32,7 +34,17 @@ public class JobService {
 
         User user = userRepository.getReferenceById(userId);
         job.setUser(user);
+        Job savedJob = jobRepository.save(job);
 
-        return jobRepository.save(job);
+        JobMessage message =
+                new JobMessage(
+                        savedJob.getId().toString(),
+                        objectKey,
+                        "COPY"
+                );
+
+        queueProducer.sendJob(message);
+
+        return savedJob;
     }
 }
