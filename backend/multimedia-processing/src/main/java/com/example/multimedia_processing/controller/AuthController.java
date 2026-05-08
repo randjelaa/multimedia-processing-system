@@ -1,5 +1,7 @@
 package com.example.multimedia_processing.controller;
 
+import com.example.multimedia_processing.dto.AuthResponse;
+import com.example.multimedia_processing.dto.LoginRequest;
 import com.example.multimedia_processing.dto.RegisterRequest;
 import com.example.multimedia_processing.service.AuthService;
 import lombok.RequiredArgsConstructor;
@@ -18,5 +20,13 @@ public class AuthController {
     public void register(@RequestBody RegisterRequest request) {
 
         authService.register(request);
+    }
+
+    @PostMapping("/login")
+    public AuthResponse login(
+            @RequestBody LoginRequest request
+    ) {
+
+        return authService.login(request);
     }
 }
