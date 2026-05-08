@@ -1,1 +1,16 @@
-<p>upload works!</p>
+<h2>Upload File</h2>
+
+<input
+  type="file"
+  (change)="onFileSelected($event)"
+/>
+
+<button (click)="upload()">
+  Upload
+</button>
+
+<br><br>
+
+<button routerLink="/dashboard">
+  Back to Dashboard
+</button>
