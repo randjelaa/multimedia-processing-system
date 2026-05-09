@@ -47,4 +47,26 @@ public class JobService {
 
         return savedJob;
     }
+
+    public void completeJob(
+            UUID jobId,
+            String resultFileKey
+    ) {
+
+        Job job = jobRepository.findById(jobId).orElseThrow();
+        job.setStatus(JobStatus.DONE);
+        job.setResultFileKey(resultFileKey);
+        job.setFinishedAt(LocalDateTime.now());
+
+        jobRepository.save(job);
+    }
+
+    public void failJob(UUID jobId) {
+
+        Job job = jobRepository.findById(jobId).orElseThrow();
+        job.setStatus(JobStatus.FAILED);
+        job.setFinishedAt(LocalDateTime.now());
+
+        jobRepository.save(job);
+    }
 }
