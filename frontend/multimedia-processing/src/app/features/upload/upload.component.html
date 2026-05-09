@@ -5,6 +5,18 @@
   (change)="onFileSelected($event)"
 />
 
+<br><br>
+
+<select [(ngModel)]="jobType">
+
+  <option value="THUMBNAIL">
+    Thumbnail Extraction
+  </option>
+
+</select>
+
+<br><br>
+
 <button (click)="upload()">
   Upload
 </button>

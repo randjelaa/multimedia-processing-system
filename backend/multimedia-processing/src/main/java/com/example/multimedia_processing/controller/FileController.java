@@ -23,6 +23,7 @@ public class FileController {
     @PostMapping("/upload")
     public Job upload(
             @RequestParam("file") MultipartFile file,
+            @RequestParam("type") String type,
             Authentication authentication
     ) {
 
@@ -37,7 +38,8 @@ public class FileController {
         return jobService.createJob(
                 file.getOriginalFilename(),
                 objectKey,
-                userId
+                userId,
+                type
         );
     }
 }

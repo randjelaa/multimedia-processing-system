@@ -1,19 +1,25 @@
-import pika
 import json
+import pika
 
-from processor import process_job
+from processor import process_thumbnail
+from config import RABBITMQ_HOST
 
 connection = pika.BlockingConnection(
 
     pika.ConnectionParameters(
-        host='localhost'
+        host=RABBITMQ_HOST
     )
 )
 
 channel = connection.channel()
 
 channel.queue_declare(
-    queue='jobs.queue',
+    queue='thumbnail.queue',
+    durable=True
+)
+
+channel.queue_declare(
+    queue='jobs.results.queue',
     durable=True
 )
 
@@ -24,11 +30,12 @@ def callback(ch, method, properties, body):
 
     print("Received job:", job)
 
+    print("QUEUE JOB:", job)
+
     try:
 
-        result_key = process_job(job)
-
-        print("Processing done")
+        result_key = \
+            process_thumbnail(job)
 
         result_message = {
 
@@ -40,14 +47,22 @@ def callback(ch, method, properties, body):
         }
 
         channel.basic_publish(
+
             exchange='',
-            routing_key='jobs.results.queue',
-            body=json.dumps(result_message)
+
+            routing_key=
+            'jobs.results.queue',
+
+            body=json.dumps(
+                result_message
+            )
         )
+
+        print("Thumbnail done.")
 
     except Exception as e:
 
-        print("Error:", e)
+        print("ERROR:", e)
 
         failed_message = {
 
@@ -59,9 +74,15 @@ def callback(ch, method, properties, body):
         }
 
         channel.basic_publish(
+
             exchange='',
-            routing_key='jobs.results.queue',
-            body=json.dumps(failed_message)
+
+            routing_key=
+            'jobs.results.queue',
+
+            body=json.dumps(
+                failed_message
+            )
         )
 
     ch.basic_ack(
@@ -71,10 +92,14 @@ def callback(ch, method, properties, body):
 
 def start_consumer():
 
-    print("Worker started...")
+    print(
+        "Thumbnail worker started..."
+    )
 
     channel.basic_consume(
-        queue='jobs.queue',
+
+        queue='thumbnail.queue',
+
         on_message_callback=callback
     )
 

@@ -3,6 +3,7 @@ package com.example.multimedia_processing.service;
 import com.example.multimedia_processing.dto.JobMessage;
 import com.example.multimedia_processing.entity.Job;
 import com.example.multimedia_processing.entity.JobStatus;
+import com.example.multimedia_processing.entity.JobType;
 import com.example.multimedia_processing.entity.User;
 import com.example.multimedia_processing.repository.JobRepository;
 import com.example.multimedia_processing.repository.UserRepository;
@@ -23,7 +24,8 @@ public class JobService {
     public Job createJob(
             String originalFileName,
             String objectKey,
-            UUID userId
+            UUID userId,
+            String type
     ) {
 
         Job job = new Job();
@@ -31,6 +33,7 @@ public class JobService {
         job.setObjectKey(objectKey);
         job.setStatus(JobStatus.PENDING);
         job.setCreatedAt(LocalDateTime.now());
+        job.setType(JobType.valueOf(type));
 
         User user = userRepository.getReferenceById(userId);
         job.setUser(user);
@@ -40,10 +43,13 @@ public class JobService {
                 new JobMessage(
                         savedJob.getId().toString(),
                         objectKey,
-                        "COPY"
+                        type
                 );
 
-        queueProducer.sendJob(message);
+        queueProducer.sendJob(
+                message,
+                job.getType()
+        );
 
         return savedJob;
     }

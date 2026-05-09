@@ -47,7 +47,7 @@ __pycache__/
 *.pyd
 
 # virtual environment
-worker/venv/
+workers/*/venv/
 venv/
 
 # pytest / cache
@@ -57,7 +57,3 @@ venv/
 
 # logs / runtime
 *.log
-
-# worker runtime folders (ako se generišu lokalno)
-worker/downloads/
-worker/processed/

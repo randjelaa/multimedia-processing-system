@@ -1,28 +1,20 @@
 import { Injectable } from '@angular/core';
 
-import { HttpClient }
-from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class UploadService {
+  private api = 'http://localhost:8080/api/files';
 
-  private api =
-    'http://localhost:8080/api/files';
+  constructor(private http: HttpClient) {}
 
-  constructor(private http: HttpClient) {
-  }
-
-  upload(file: File) {
-
+  upload(file: File, type: string) {
     const formData = new FormData();
-
     formData.append('file', file);
+    formData.append('type', type);
 
-    return this.http.post(
-      `${this.api}/upload`,
-      formData
-    );
+    return this.http.post(`${this.api}/upload`, formData);
   }
 }

@@ -29,6 +29,8 @@ public class Job {
 
     private String resultFileKey;
 
+    private JobType type;
+
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User user;
