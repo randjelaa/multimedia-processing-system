@@ -1,15 +1,47 @@
 import os
-import ffmpeg
+import subprocess
+import re
 
 from minio_client import client
 from config import BUCKET
 
-BASE_DIR = os.path.dirname(
-    os.path.abspath(__file__)
+from rabbitmq_sender import (
+    send_progress
 )
 
 DOWNLOAD_DIR = "C:/temp/downloads"
 PROCESSED_DIR = "C:/temp/processed"
+
+
+def get_video_duration(input_path):
+
+    command = [
+
+        "ffprobe",
+
+        "-v", "error",
+
+        "-show_entries",
+        "format=duration",
+
+        "-of",
+        "default=noprint_wrappers=1:nokey=1",
+
+        input_path
+    ]
+
+    result = subprocess.run(
+
+        command,
+
+        stdout=subprocess.PIPE,
+
+        stderr=subprocess.PIPE,
+
+        text=True
+    )
+
+    return float(result.stdout.strip())
 
 
 def process_audio(job):
@@ -40,9 +72,6 @@ def process_audio(job):
         audio_name
     )
 
-    print("DOWNLOAD DIR:", DOWNLOAD_DIR)
-    print("INPUT PATH:", input_path)
-
     print("Downloading from MinIO...")
 
     client.fget_object(
@@ -51,17 +80,100 @@ def process_audio(job):
         input_path
     )
 
-    print("Extracting audio...")
-
-    (
-        ffmpeg
-        .input(input_path)
-        .output(
-            output_path,
-            format="mp3"
-        )
-        .run(overwrite_output=True)
+    duration = get_video_duration(
+        input_path
     )
+
+    print(
+        f"Video duration: {duration}"
+    )
+
+    send_progress(
+        job["jobId"],
+        0
+    )
+
+    command = [
+
+        "ffmpeg",
+
+        "-i",
+        input_path,
+
+        "-vn",
+
+        "-acodec",
+        "mp3",
+
+        "-y",
+
+        output_path
+    ]
+
+    process = subprocess.Popen(
+
+        command,
+
+        stderr=subprocess.PIPE,
+
+        stdout=subprocess.PIPE,
+
+        text=True
+    )
+
+    last_progress = -1
+
+    while True:
+
+        line = process.stderr.readline()
+
+        if not line:
+            break
+
+        print(line.strip())
+
+        match = re.search(
+            r"time=(\d+):(\d+):(\d+\.\d+)",
+            line
+        )
+
+        if match:
+
+            hours = int(match.group(1))
+            minutes = int(match.group(2))
+            seconds = float(match.group(3))
+
+            current_time = (
+                    hours * 3600
+                    + minutes * 60
+                    + seconds
+            )
+
+            progress = int(
+                (current_time / duration)
+                * 100
+            )
+
+            if progress > last_progress:
+
+                last_progress = progress
+
+                print(
+                    f"Progress: {progress}%"
+                )
+
+                send_progress(
+                    job["jobId"],
+                    progress
+                )
+
+    process.wait()
+
+    if process.returncode != 0:
+
+        raise Exception(
+            "FFmpeg audio extraction failed"
+        )
 
     processed_key = (
         f"processed/{audio_name}"
@@ -70,8 +182,11 @@ def process_audio(job):
     print("Uploading audio...")
 
     client.fput_object(
+
         BUCKET,
+
         processed_key,
+
         output_path
     )
 
