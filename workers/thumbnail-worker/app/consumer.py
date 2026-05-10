@@ -2,16 +2,15 @@ import json
 import pika
 
 from processor import process_thumbnail
+
 from config import RABBITMQ_HOST
 
-connection = pika.BlockingConnection(
-
-    pika.ConnectionParameters(
-        host=RABBITMQ_HOST
-    )
+from rabbitmq_sender import (
+    send_done,
+    send_failed
 )
 
-channel = connection.channel()
+from rabbitmq import channel
 
 channel.queue_declare(
     queue='thumbnail.queue',
@@ -24,38 +23,25 @@ channel.queue_declare(
 )
 
 
-def callback(ch, method, properties, body):
+def callback(
+        ch,
+        method,
+        properties,
+        body
+):
 
     job = json.loads(body)
 
     print("Received job:", job)
-
-    print("QUEUE JOB:", job)
 
     try:
 
         result_key = \
             process_thumbnail(job)
 
-        result_message = {
-
-            "jobId": job["jobId"],
-
-            "status": "DONE",
-
-            "resultFileKey": result_key
-        }
-
-        channel.basic_publish(
-
-            exchange='',
-
-            routing_key=
-            'jobs.results.queue',
-
-            body=json.dumps(
-                result_message
-            )
+        send_done(
+            job["jobId"],
+            result_key
         )
 
         print("Thumbnail done.")
@@ -64,25 +50,8 @@ def callback(ch, method, properties, body):
 
         print("ERROR:", e)
 
-        failed_message = {
-
-            "jobId": job["jobId"],
-
-            "status": "FAILED",
-
-            "resultFileKey": None
-        }
-
-        channel.basic_publish(
-
-            exchange='',
-
-            routing_key=
-            'jobs.results.queue',
-
-            body=json.dumps(
-                failed_message
-            )
+        send_failed(
+            job["jobId"]
         )
 
     ch.basic_ack(

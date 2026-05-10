@@ -1,11 +1,12 @@
 import os
+import time
 import ffmpeg
 
 from minio_client import client
 from config import BUCKET
 
-BASE_DIR = os.path.dirname(
-    os.path.abspath(__file__)
+from rabbitmq_sender import (
+    send_progress
 )
 
 DOWNLOAD_DIR = "C:/temp/downloads"
@@ -40,8 +41,10 @@ def process_thumbnail(job):
         thumbnail_name
     )
 
-    print("DOWNLOAD DIR:", DOWNLOAD_DIR)
-    print("INPUT PATH:", input_path)
+    send_progress(
+        job["jobId"],
+        10
+    )
 
     print("Downloading from MinIO...")
 
@@ -51,6 +54,13 @@ def process_thumbnail(job):
         input_path
     )
 
+    time.sleep(1)
+
+    send_progress(
+        job["jobId"],
+        35
+    )
+
     print("Extracting thumbnail...")
 
     (
@@ -58,6 +68,13 @@ def process_thumbnail(job):
         .input(input_path, ss=1)
         .output(output_path, vframes=1)
         .run(overwrite_output=True)
+    )
+
+    time.sleep(1)
+
+    send_progress(
+        job["jobId"],
+        75
     )
 
     processed_key = (
@@ -70,6 +87,11 @@ def process_thumbnail(job):
         BUCKET,
         processed_key,
         output_path
+    )
+
+    send_progress(
+        job["jobId"],
+        95
     )
 
     os.remove(input_path)
