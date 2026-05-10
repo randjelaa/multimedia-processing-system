@@ -10,4 +10,5 @@ public class JobResultMessage {
     private String jobId;
     private String status;
     private String resultFileKey;
+    private Integer progressPercentage;
 }

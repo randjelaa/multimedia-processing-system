@@ -63,6 +63,7 @@ public class JobService {
         job.setStatus(JobStatus.DONE);
         job.setResultFileKey(resultFileKey);
         job.setFinishedAt(LocalDateTime.now());
+        job.setProgressPercentage(100);
 
         jobRepository.save(job);
     }
@@ -72,6 +73,24 @@ public class JobService {
         Job job = jobRepository.findById(jobId).orElseThrow();
         job.setStatus(JobStatus.FAILED);
         job.setFinishedAt(LocalDateTime.now());
+        job.setProgressPercentage(0);
+
+        jobRepository.save(job);
+    }
+
+    public void updateProcessing(
+            UUID jobId,
+            Integer progressPercentage
+    ) {
+
+        Job job = jobRepository.findById(jobId)
+                .orElseThrow();
+
+        job.setStatus(JobStatus.PROCESSING);
+
+        if (progressPercentage != null) {
+            job.setProgressPercentage(progressPercentage);
+        }
 
         jobRepository.save(job);
     }

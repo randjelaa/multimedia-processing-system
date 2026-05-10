@@ -31,6 +31,8 @@ public class Job {
 
     private JobType type;
 
+    private Integer progressPercentage = 0;
+
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User user;

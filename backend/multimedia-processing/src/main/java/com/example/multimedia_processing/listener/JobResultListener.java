@@ -26,24 +26,48 @@ public class JobResultListener {
                         result.getJobId()
                 );
 
-        if ("DONE".equals(result.getStatus())) {
+        String status = result.getStatus();
 
-            jobService.completeJob(
-                    jobId,
-                    result.getResultFileKey()
-            );
+        switch (status) {
 
-            System.out.println(
-                    "Job completed: " + jobId
-            );
+            case "PROCESSING" -> {
 
-        } else {
+                jobService.updateProcessing(
+                        jobId,
+                        result.getProgressPercentage()
+                );
 
-            jobService.failJob(jobId);
+                System.out.println(
+                        "Job processing: "
+                                + jobId
+                                + " "
+                                + result.getProgressPercentage()
+                                + "%"
+                );
+            }
 
-            System.out.println(
-                    "Job failed: " + jobId
-            );
+            case "DONE" -> {
+
+                jobService.completeJob(
+                        jobId,
+                        result.getResultFileKey()
+                );
+
+                System.out.println(
+                        "Job completed: "
+                                + jobId
+                );
+            }
+
+            case "FAILED" -> {
+
+                jobService.failJob(jobId);
+
+                System.out.println(
+                        "Job failed: "
+                                + jobId
+                );
+            }
         }
     }
 }
