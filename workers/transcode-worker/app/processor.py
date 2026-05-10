@@ -1,0 +1,81 @@
+import os
+import ffmpeg
+
+from minio_client import client
+from config import BUCKET
+
+BASE_DIR = os.path.dirname(
+    os.path.abspath(__file__)
+)
+
+DOWNLOAD_DIR = "C:/temp/downloads"
+PROCESSED_DIR = "C:/temp/processed"
+
+
+def process_transcode(job):
+
+    os.makedirs(
+        DOWNLOAD_DIR,
+        exist_ok=True
+    )
+
+    os.makedirs(
+        PROCESSED_DIR,
+        exist_ok=True
+    )
+
+    object_key = job["objectKey"]
+
+    filename = object_key.split("/")[-1]
+
+    input_path = os.path.join(
+        DOWNLOAD_DIR,
+        filename
+    )
+
+    transcoded_name = f"720p-{filename}"
+
+    output_path = os.path.join(
+        PROCESSED_DIR,
+        transcoded_name
+    )
+
+    print("DOWNLOAD DIR:", DOWNLOAD_DIR)
+    print("INPUT PATH:", input_path)
+
+    print("Downloading from MinIO...")
+
+    client.fget_object(
+        BUCKET,
+        object_key,
+        input_path
+    )
+
+    print("Transcoding video...")
+
+    (
+        ffmpeg
+        .input(input_path)
+        .output(
+            output_path,
+            vf="scale=1280:720"
+        )
+        .run(overwrite_output=True)
+    )
+
+    processed_key = (
+        f"processed/{transcoded_name}"
+    )
+
+    print("Uploading transcoded video...")
+
+    client.fput_object(
+        BUCKET,
+        processed_key,
+        output_path
+    )
+
+    os.remove(input_path)
+    os.remove(output_path)
+
+    return processed_key
