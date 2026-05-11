@@ -1,7 +1,7 @@
 package com.example.multimedia_processing.controller;
 
 import com.example.multimedia_processing.entity.Job;
-import com.example.multimedia_processing.repository.JobRepository;
+import com.example.multimedia_processing.service.JobService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,11 +13,11 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class JobController {
 
-    private final JobRepository jobRepository;
+    private final JobService jobService;
 
     @GetMapping
     public List<Job> getJobs() {
-        return jobRepository.findAll();
+        return jobService.getAll();
     }
 
     @GetMapping("/{id}")
@@ -25,7 +25,6 @@ public class JobController {
             @PathVariable UUID id
     ) {
 
-        return jobRepository.findById(id)
-                .orElseThrow();
+        return jobService.getJobById(id);
     }
 }

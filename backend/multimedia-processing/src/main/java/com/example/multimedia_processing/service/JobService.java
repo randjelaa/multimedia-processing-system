@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -93,5 +94,13 @@ public class JobService {
         }
 
         jobRepository.save(job);
+    }
+
+    public Job getJobById(UUID id) {
+        return  jobRepository.findById(id).orElseThrow();
+    }
+
+    public List<Job> getAll() {
+        return jobRepository.findAll();
     }
 }

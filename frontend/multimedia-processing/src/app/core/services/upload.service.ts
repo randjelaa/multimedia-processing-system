@@ -17,4 +17,10 @@ export class UploadService {
 
     return this.http.post(`${this.api}/upload`, formData);
   }
+
+  download(jobId: string) {
+    return this.http.get(`${this.api}/download/${jobId}`, {
+      responseType: 'blob',
+    });
+  }
 }

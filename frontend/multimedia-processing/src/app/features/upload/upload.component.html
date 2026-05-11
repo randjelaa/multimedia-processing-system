@@ -1,42 +1,28 @@
 <h2>Upload File</h2>
 
-<input
-  type="file"
-  (change)="onFileSelected($event)"
-/>
+<input type="file" (change)="onFileSelected($event)" />
 
 <br /><br />
 
 <select [(ngModel)]="jobType">
-  <option value="THUMBNAIL">
-    Thumbnail extraction
-  </option>
+  <option value="THUMBNAIL">Thumbnail extraction</option>
 
-  <option value="AUDIO">
-    Audio extraction
-  </option>
+  <option value="AUDIO">Audio extraction</option>
 
-  <option value="TRANSCODE">
-    Transcode video
-  </option>
+  <option value="TRANSCODE">Transcode video</option>
 </select>
 
 <br /><br />
 
-<button (click)="upload()">
-  Upload
-</button>
+<button (click)="upload()">Upload</button>
 
 <br /><br />
 
-<button routerLink="/dashboard">
-  Back to Dashboard
-</button>
+<button routerLink="/dashboard">Back to Dashboard</button>
 
 <hr />
 
 <div *ngIf="currentJob">
-
   <h3>
     {{ currentJob.originalFileName }}
   </h3>
@@ -50,39 +36,32 @@
 
   <p>
     Progress:
-    {{
-      currentJob.progressPercentage
-    }}%
+    {{ currentJob.progressPercentage }}%
   </p>
 
   <div class="progress-container">
+    <div class="progress-bar" [style.width]="getProgressWidth()"></div>
+  </div>
 
-    <div
-      class="progress-bar"
-      [style.width]="
-        getProgressWidth()
+  <div *ngIf="currentJob?.status === 'DONE'">
+    <h4>Processing completed!</h4>
+
+    <button
+      (click)="downloadFile()"
+      class="download-btn"
+      style="
+        background-color: #28a745;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        cursor: pointer;
       "
-    ></div>
-
+    >
+      Download Result
+    </button>
   </div>
 
-  <div
-    *ngIf="
-      currentJob.status === 'DONE'
-    "
-  >
-    <h4>
-      Processing completed!
-    </h4>
-  </div>
-
-  <div
-    *ngIf="
-      currentJob.status === 'FAILED'
-    "
-  >
-    <h4>
-      Processing failed!
-    </h4>
+  <div *ngIf="currentJob.status === 'FAILED'">
+    <h4>Processing failed!</h4>
   </div>
 </div>
