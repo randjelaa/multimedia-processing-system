@@ -61,6 +61,29 @@
     </button>
   </div>
 
+  <div
+    *ngIf="
+      currentJob?.status === 'PROCESSING' || currentJob?.status === 'PENDING'
+    "
+  >
+    <button
+      (click)="abortProcessing()"
+      style="
+        background-color: #dc3545;
+        color: white;
+        border: none;
+        padding: 5px 10px;
+        cursor: pointer;
+      "
+    >
+      Abort Processing
+    </button>
+  </div>
+
+  <div *ngIf="currentJob?.status === 'CANCELLED'">
+    <h4 style="color: #dc3545">Processing was cancelled.</h4>
+  </div>
+
   <div *ngIf="currentJob.status === 'FAILED'">
     <h4>Processing failed!</h4>
   </div>

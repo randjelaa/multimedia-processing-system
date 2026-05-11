@@ -5,7 +5,7 @@ import { HttpClient } from '@angular/common/http';
 @Injectable({
   providedIn: 'root',
 })
-export class UploadService {
+export class FileService {
   private api = 'http://localhost:8080/api/files';
 
   constructor(private http: HttpClient) {}

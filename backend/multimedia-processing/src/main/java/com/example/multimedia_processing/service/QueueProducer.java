@@ -18,11 +18,8 @@ public class QueueProducer {
     ) {
 
         String queueName = switch (type) {
-
             case THUMBNAIL -> "thumbnail.queue";
-
             case AUDIO -> "audio.queue";
-
             case TRANSCODE -> "transcode.queue";
         };
 
@@ -30,5 +27,9 @@ public class QueueProducer {
                 queueName,
                 message
         );
+    }
+
+    public void sendAbortSignal(String jobId) {
+        rabbitTemplate.convertAndSend("jobs.control.exchange", "", jobId);
     }
 }

@@ -79,21 +79,35 @@ public class JobService {
         jobRepository.save(job);
     }
 
-    public void updateProcessing(
-            UUID jobId,
-            Integer progressPercentage
-    ) {
+    public void updateProcessing(UUID jobId, Integer progressPercentage) {
+        Job job = jobRepository.findById(jobId).orElseThrow();
 
-        Job job = jobRepository.findById(jobId)
-                .orElseThrow();
+        if (job.getStatus() == JobStatus.ABORTED) {
+            return;
+        }
 
         job.setStatus(JobStatus.PROCESSING);
-
         if (progressPercentage != null) {
             job.setProgressPercentage(progressPercentage);
         }
-
         jobRepository.save(job);
+    }
+
+    public void abortJob(UUID jobId) {
+        Job job = jobRepository.findById(jobId)
+                .orElseThrow(() -> new RuntimeException("Job not found"));
+
+        if (job.getStatus() == JobStatus.DONE ||
+                job.getStatus() == JobStatus.FAILED ||
+                job.getStatus() == JobStatus.ABORTED) {
+            return;
+        }
+
+        job.setStatus(JobStatus.ABORTED);
+        job.setFinishedAt(LocalDateTime.now());
+        jobRepository.save(job);
+
+        queueProducer.sendAbortSignal(jobId.toString());
     }
 
     public Job getJobById(UUID id) {

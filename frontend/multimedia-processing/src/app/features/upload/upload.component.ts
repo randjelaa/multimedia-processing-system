@@ -1,5 +1,5 @@
 import { Component, OnDestroy } from '@angular/core';
-import { UploadService } from '../../core/services/upload.service';
+import { FileService } from '../../core/services/file.service';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { JobService } from '../../core/services/job.service';
@@ -26,7 +26,7 @@ export class UploadComponent implements OnDestroy {
   isUploading = false;
 
   constructor(
-    private uploadService: UploadService,
+    private uploadService: FileService,
 
     private jobService: JobService,
   ) {}
@@ -111,6 +111,20 @@ export class UploadComponent implements OnDestroy {
           document.body.removeChild(a);
         }, 100);
       },
+    });
+  }
+
+  abortProcessing() {
+    if (!this.currentJob) return;
+
+    this.jobService.abort(this.currentJob.id).subscribe({
+      next: () => {
+        console.log('Abort request sent');
+        this.pollingSubscription?.unsubscribe();
+        this.currentJob.status = 'ABORTED';
+        this.isUploading = false;
+      },
+      error: (err) => console.error('Failed to abort', err),
     });
   }
 

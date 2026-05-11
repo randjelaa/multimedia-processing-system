@@ -12,8 +12,10 @@ export class JobService {
   constructor(private http: HttpClient) {}
 
   getJob(id: string): Observable<Job> {
-    return this.http.get<Job>(
-      `${this.api}/${id}`
-    );
+    return this.http.get<Job>(`${this.api}/${id}`);
+  }
+
+  abort(jobId: string) {
+    return this.http.post(`${this.api}/abort/${jobId}`, {});
   }
 }

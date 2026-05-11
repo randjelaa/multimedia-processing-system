@@ -3,6 +3,7 @@ package com.example.multimedia_processing.controller;
 import com.example.multimedia_processing.entity.Job;
 import com.example.multimedia_processing.service.JobService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -26,5 +27,11 @@ public class JobController {
     ) {
 
         return jobService.getJobById(id);
+    }
+
+    @PostMapping("/abort/{jobId}")
+    public ResponseEntity<Void> abortJob(@PathVariable UUID jobId) {
+        jobService.abortJob(jobId);
+        return ResponseEntity.ok().build();
     }
 }
