@@ -6,9 +6,7 @@
 
 <select [(ngModel)]="jobType">
   <option value="THUMBNAIL">Thumbnail extraction</option>
-
   <option value="AUDIO">Audio extraction</option>
-
   <option value="TRANSCODE">Transcode video</option>
 </select>
 
@@ -18,25 +16,19 @@
 
 <br /><br />
 
-<button routerLink="/dashboard">Back to Dashboard</button>
+<button (click)="logout()">Logout</button>
 
 <hr />
 
 <div *ngIf="currentJob">
-  <h3>
-    {{ currentJob.originalFileName }}
-  </h3>
+  <h3>{{ currentJob.originalFileName }}</h3>
 
   <p>
-    Status:
-    <strong>
-      {{ currentJob.status }}
-    </strong>
+    Status: <strong>{{ currentJob.status }}</strong>
   </p>
 
   <p>
-    Progress:
-    {{ currentJob.progressPercentage }}%
+    Progress: {{ currentJob.progressPercentage }}%
   </p>
 
   <div class="progress-container">
@@ -49,39 +41,22 @@
     <button
       (click)="downloadFile()"
       class="download-btn"
-      style="
-        background-color: #28a745;
-        color: white;
-        padding: 10px 20px;
-        border: none;
-        cursor: pointer;
-      "
     >
       Download Result
     </button>
   </div>
 
-  <div
-    *ngIf="
-      currentJob?.status === 'PROCESSING' || currentJob?.status === 'PENDING'
-    "
-  >
+  <div *ngIf="currentJob?.status === 'PROCESSING' || currentJob?.status === 'PENDING'">
     <button
       (click)="abortProcessing()"
-      style="
-        background-color: #dc3545;
-        color: white;
-        border: none;
-        padding: 5px 10px;
-        cursor: pointer;
-      "
+      class="abort-btn"
     >
       Abort Processing
     </button>
   </div>
 
   <div *ngIf="currentJob?.status === 'CANCELLED'">
-    <h4 style="color: #dc3545">Processing was cancelled.</h4>
+    <h4>Processing was cancelled.</h4>
   </div>
 
   <div *ngIf="currentJob.status === 'FAILED'">

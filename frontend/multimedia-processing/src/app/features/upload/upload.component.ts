@@ -6,11 +6,12 @@ import { JobService } from '../../core/services/job.service';
 import { interval, Subscription } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
 import { CommonModule } from '@angular/common';
+import { AuthService } from '../../core/services/auth.service';
 
 @Component({
   selector: 'app-upload',
   standalone: true,
-  imports: [RouterLink, FormsModule, CommonModule],
+  imports: [FormsModule, CommonModule],
   templateUrl: './upload.component.html',
   styleUrl: './upload.component.css',
 })
@@ -18,7 +19,6 @@ export class UploadComponent implements OnDestroy {
   selectedFile!: File;
 
   jobType = 'THUMBNAIL';
-
   currentJob: any = null;
 
   pollingSubscription?: Subscription;
@@ -27,7 +27,7 @@ export class UploadComponent implements OnDestroy {
 
   constructor(
     private uploadService: FileService,
-
+    private authService: AuthService,
     private jobService: JobService,
   ) {}
 
@@ -45,10 +45,7 @@ export class UploadComponent implements OnDestroy {
     this.uploadService
       .upload(this.selectedFile, this.jobType)
       .subscribe((response: any) => {
-        console.log(response);
-
         this.currentJob = response;
-
         this.startPolling(response.id);
       });
   }
@@ -57,13 +54,10 @@ export class UploadComponent implements OnDestroy {
     this.pollingSubscription = interval(2000)
       .pipe(switchMap(() => this.jobService.getJob(jobId)))
       .subscribe((job) => {
-        console.log(job);
-
         this.currentJob = job;
 
         if (job.status === 'DONE' || job.status === 'FAILED') {
           this.pollingSubscription?.unsubscribe();
-
           this.isUploading = false;
         }
       });
@@ -119,13 +113,16 @@ export class UploadComponent implements OnDestroy {
 
     this.jobService.abort(this.currentJob.id).subscribe({
       next: () => {
-        console.log('Abort request sent');
         this.pollingSubscription?.unsubscribe();
         this.currentJob.status = 'ABORTED';
         this.isUploading = false;
       },
       error: (err) => console.error('Failed to abort', err),
     });
+  }
+
+  logout(): void {
+    this.authService.logout();
   }
 
   ngOnDestroy(): void {

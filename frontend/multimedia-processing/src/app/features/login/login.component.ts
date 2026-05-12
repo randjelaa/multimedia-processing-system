@@ -1,10 +1,6 @@
 import { Component } from '@angular/core';
-
 import { FormsModule } from '@angular/forms';
-
-import { AuthService }
-from '../../core/services/auth.service';
-
+import { AuthService } from '../../core/services/auth.service';
 import { Router } from '@angular/router';
 
 @Component({
@@ -12,33 +8,26 @@ import { Router } from '@angular/router';
   standalone: true,
   imports: [FormsModule],
   templateUrl: './login.component.html',
-  styleUrl: './login.component.css'
+  styleUrl: './login.component.css',
 })
 export class LoginComponent {
-
   email = '';
-
   password = '';
 
   constructor(
     private authService: AuthService,
-    private router: Router
-  ) {
-  }
+    private router: Router,
+  ) {}
 
   login() {
-
-    this.authService.login({
-
-      email: this.email,
-      password: this.password
-
-    }).subscribe((response: any) => {
-
-      this.authService
-        .saveToken(response.token);
-
-      this.router.navigate(['/dashboard']);
-    });
+    this.authService
+      .login({
+        email: this.email,
+        password: this.password,
+      })
+      .subscribe((response: any) => {
+        this.authService.saveToken(response.token);
+        this.router.navigate(['/upload']);
+      });
   }
 }

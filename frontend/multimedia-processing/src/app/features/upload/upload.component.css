@@ -1,20 +1,30 @@
 .progress-container {
   width: 400px;
   height: 30px;
-
   border: 1px solid #ccc;
-
   border-radius: 8px;
-
   overflow: hidden;
-
   margin-top: 10px;
 }
 
 .progress-bar {
   height: 100%;
-
   background-color: #4caf50;
-
   transition: width 0.5s ease;
+}
+
+.download-btn {
+  background-color: #28a745;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  cursor: pointer;
+}
+
+.abort-btn {
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  cursor: pointer;
 }
