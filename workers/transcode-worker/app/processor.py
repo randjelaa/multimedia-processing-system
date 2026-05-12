@@ -18,11 +18,13 @@ def get_video_duration(input_path):
 
 def process_transcode(job):
     job_id = job["jobId"]
+    
     os.makedirs(DOWNLOAD_DIR, exist_ok=True)
     os.makedirs(PROCESSED_DIR, exist_ok=True)
 
     object_key = job["objectKey"]
     filename = object_key.split("/")[-1]
+    
     input_path = os.path.join(DOWNLOAD_DIR, filename)
     transcoded_name = f"720p-{filename}"
     output_path = os.path.join(PROCESSED_DIR, transcoded_name)
@@ -32,9 +34,7 @@ def process_transcode(job):
     send_progress(job_id, 0)
 
     command = ["ffmpeg", "-i", input_path, "-vf", "scale=1280:720", "-y", output_path]
-
     process = subprocess.Popen(command, stderr=subprocess.PIPE, stdout=subprocess.PIPE, text=True, universal_newlines=True)
-    
     active_processes[job_id] = process
     print(f"Started FFmpeg for job {job_id}")
 

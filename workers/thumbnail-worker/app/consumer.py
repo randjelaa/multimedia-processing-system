@@ -38,7 +38,7 @@ def control_callback(ch, method, properties, body):
 def start_consumer():
     channel.basic_consume(queue=control_queue_name, on_message_callback=control_callback, auto_ack=True)
     channel.basic_consume(queue='thumbnail.queue', on_message_callback=job_callback)
-    print("Thumbnail worker started (listening for jobs and abort signals)...")
+    print("Thumbnail worker started...")
     channel.start_consuming()
 
 if __name__ == "__main__":

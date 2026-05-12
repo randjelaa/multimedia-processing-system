@@ -40,5 +40,5 @@ def start_consumer():
     channel.basic_consume(queue=control_queue_name, on_message_callback=control_callback, auto_ack=True)
     channel.basic_consume(queue='transcode.queue', on_message_callback=job_callback)
 
-    print("Transcode worker started (listening for jobs and abort signals)...")
+    print("Transcode worker started...")
     channel.start_consuming()

@@ -17,13 +17,15 @@ def get_video_duration(input_path):
 
 def process_audio(job):
     job_id = job["jobId"]
+    
     os.makedirs(DOWNLOAD_DIR, exist_ok=True)
     os.makedirs(PROCESSED_DIR, exist_ok=True)
 
     object_key = job["objectKey"]
     filename = object_key.split("/")[-1]
+    
     input_path = os.path.join(DOWNLOAD_DIR, filename)
-    audio_name = f"{filename}.mp3"
+    audio_name = os.path.splitext(filename)[0] + ".mp3"
     output_path = os.path.join(PROCESSED_DIR, audio_name)
 
     client.fget_object(BUCKET, object_key, input_path)
@@ -31,9 +33,9 @@ def process_audio(job):
     send_progress(job_id, 0)
 
     command = ["ffmpeg", "-i", input_path, "-vn", "-acodec", "libmp3lame", "-y", output_path]
-
     process = subprocess.Popen(command, stderr=subprocess.PIPE, stdout=subprocess.PIPE, text=True, universal_newlines=True)
     active_processes[job_id] = process
+    print(f"Started FFmpeg for job {job_id}")
     
     try:
         last_progress = -1

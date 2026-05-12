@@ -11,13 +11,15 @@ active_processes = {}
 
 def process_thumbnail(job):
     job_id = job["jobId"]
+    
     os.makedirs(DOWNLOAD_DIR, exist_ok=True)
     os.makedirs(PROCESSED_DIR, exist_ok=True)
 
     object_key = job["objectKey"]
     filename = object_key.split("/")[-1]
+    
     input_path = os.path.join(DOWNLOAD_DIR, filename)
-    thumbnail_name = f"{filename}.jpg"
+    thumbnail_name = os.path.splitext(filename)[0] + ".jpg"
     output_path = os.path.join(PROCESSED_DIR, thumbnail_name)
 
     client.fget_object(BUCKET, object_key, input_path)
@@ -27,9 +29,9 @@ def process_thumbnail(job):
         "ffmpeg", "-y", "-ss", "00:00:01", "-i", input_path,
         "-vframes", "1", "-q:v", "2", output_path
     ]
-
     process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
     active_processes[job_id] = process
+    print(f"Started FFmpeg for job {job_id}")
     
     try:
         process.wait()
