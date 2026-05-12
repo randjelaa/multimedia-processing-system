@@ -2,24 +2,20 @@ package com.example.multimedia_processing.controller;
 
 import com.example.multimedia_processing.dto.FileDownloadData;
 import com.example.multimedia_processing.entity.Job;
-import com.example.multimedia_processing.entity.JobStatus;
 import com.example.multimedia_processing.security.CustomUserPrincipal;
 import com.example.multimedia_processing.service.FileService;
 import com.example.multimedia_processing.service.JobService;
 import com.example.multimedia_processing.service.MinioService;
-import io.minio.StatObjectResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 
-import java.io.InputStream;
 import java.util.UUID;
 
 @RestController

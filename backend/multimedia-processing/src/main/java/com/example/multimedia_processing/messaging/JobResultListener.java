@@ -24,17 +24,17 @@ public class JobResultListener {
         switch (status) {
             case PROCESSING -> {
                 jobService.updateProcessing(jobId, result.getProgressPercentage());
-                //System.out.println("Job processing: " + jobId + " " + result.getProgressPercentage() + "%");
+                System.out.println("Job processing: " + jobId + " " + result.getProgressPercentage() + "%");
             }
 
             case DONE -> {
                 jobService.completeJob(jobId, result.getResultFileKey());
-                //System.out.println("Job completed: " + jobId);
+                System.out.println("Job completed: " + jobId);
             }
 
             case FAILED -> {
                 jobService.failJob(jobId);
-                //System.out.println("Job failed: " + jobId);
+                System.out.println("Job failed: " + jobId);
             }
 
             default -> {}
