@@ -1,7 +1,6 @@
 import os
 import subprocess
 import re
-import signal
 from minio_client import client
 from config import BUCKET
 from rabbitmq_sender import send_progress
@@ -12,10 +11,7 @@ PROCESSED_DIR = "C:/temp/processed"
 active_processes = {}
 
 def get_video_duration(input_path):
-    command = [
-        "ffprobe", "-v", "error", "-show_entries", "format=duration",
-        "-of", "default=noprint_wrappers=1:nokey=1", input_path
-    ]
+    command = ["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "default=noprint_wrappers=1:nokey=1", input_path]
     result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
     return float(result.stdout.strip())
 
@@ -30,27 +26,20 @@ def process_audio(job):
     audio_name = f"{filename}.mp3"
     output_path = os.path.join(PROCESSED_DIR, audio_name)
 
+    client.fget_object(BUCKET, object_key, input_path)
+    duration = get_video_duration(input_path)
+    send_progress(job_id, 0)
+
+    command = ["ffmpeg", "-i", input_path, "-vn", "-acodec", "libmp3lame", "-y", output_path]
+
+    process = subprocess.Popen(command, stderr=subprocess.PIPE, stdout=subprocess.PIPE, text=True, universal_newlines=True)
+    active_processes[job_id] = process
+    
     try:
-        print(f"[{job_id}] Downloading from MinIO...")
-        client.fget_object(BUCKET, object_key, input_path)
-
-        duration = get_video_duration(input_path)
-        send_progress(job_id, 0)
-
-        command = [
-            "ffmpeg", "-i", input_path, "-vn", "-acodec", "libmp3lame", "-y", output_path
-        ]
-
-        process = subprocess.Popen(
-            command, stderr=subprocess.PIPE, stdout=subprocess.PIPE, text=True, universal_newlines=True
-        )
-        active_processes[job_id] = process
-
         last_progress = -1
         while True:
             line = process.stderr.readline()
-            if not line:
-                break
+            if not line: break
 
             match = re.search(r"time=(\d+):(\d+):(\d+\.\d+)", line)
             if match:
@@ -62,17 +51,14 @@ def process_audio(job):
 
         process.wait()
 
-        if job_id not in active_processes:
-            print(f"[{job_id}] Audio extraction was aborted.")
-            return None
-
         if process.returncode != 0:
-            raise Exception("FFmpeg audio extraction failed")
+            if job_id not in active_processes:
+                print(f"Job {job_id} was aborted during execution.")
+                return None
+            raise Exception("FFmpeg failed")
 
         processed_key = f"processed/{audio_name}"
-        print(f"[{job_id}] Uploading audio...")
         client.fput_object(BUCKET, processed_key, output_path)
-
         return processed_key
 
     finally:
@@ -84,8 +70,8 @@ def process_audio(job):
 def abort_job_process(job_id):
     if job_id in active_processes:
         process = active_processes[job_id]
-        print(f"Aborting audio process for job: {job_id}")
-        process.terminate()
+        print(f"Aborting FFmpeg process for job: {job_id}")
+        process.terminate() 
         del active_processes[job_id]
         return True
     return False

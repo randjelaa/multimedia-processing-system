@@ -1,5 +1,4 @@
 import os
-import time
 import subprocess
 from minio_client import client
 from config import BUCKET
@@ -21,38 +20,31 @@ def process_thumbnail(job):
     thumbnail_name = f"{filename}.jpg"
     output_path = os.path.join(PROCESSED_DIR, thumbnail_name)
 
+    client.fget_object(BUCKET, object_key, input_path)
+    send_progress(job_id, 20)
+
+    command = [
+        "ffmpeg", "-y", "-ss", "00:00:01", "-i", input_path,
+        "-vframes", "1", "-q:v", "2", output_path
+    ]
+
+    process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    active_processes[job_id] = process
+    
     try:
-        send_progress(job_id, 10)
-        print(f"[{job_id}] Downloading from MinIO...")
-        client.fget_object(BUCKET, object_key, input_path)
-
-        send_progress(job_id, 35)
-        print(f"[{job_id}] Extracting thumbnail...")
-
-        command = [
-            "ffmpeg", "-y", "-ss", "00:00:01", "-i", input_path,
-            "-vframes", "1", "-q:v", "2", output_path
-        ]
-        
-        process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        active_processes[job_id] = process
-        
         process.wait()
 
-        if job_id not in active_processes:
-            print(f"[{job_id}] Thumbnail extraction aborted.")
-            return None
-
         if process.returncode != 0:
-            raise Exception("FFmpeg thumbnail extraction failed")
+            if job_id not in active_processes:
+                print(f"Job {job_id} was aborted during execution.")
+                return None
+            raise Exception("FFmpeg failed")
 
-        send_progress(job_id, 75)
+        send_progress(job_id, 80)
         processed_key = f"processed/{thumbnail_name}"
-
-        print(f"[{job_id}] Uploading thumbnail...")
         client.fput_object(BUCKET, processed_key, output_path)
-
-        send_progress(job_id, 95)
+        
+        send_progress(job_id, 100)
         return processed_key
 
     finally:
@@ -63,9 +55,9 @@ def process_thumbnail(job):
 
 def abort_job_process(job_id):
     if job_id in active_processes:
-        print(f"!!! Aborting process for job {job_id} !!!")
         process = active_processes[job_id]
-        process.terminate()
+        print(f"Aborting FFmpeg process for job: {job_id}")
+        process.terminate() 
         del active_processes[job_id]
         return True
     return False
