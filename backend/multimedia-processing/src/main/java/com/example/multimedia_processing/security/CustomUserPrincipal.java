@@ -10,17 +10,12 @@ import org.springframework.security.core.GrantedAuthority;
 
 @Getter
 @AllArgsConstructor
-public class CustomUserPrincipal
-        implements UserDetails {
+public class CustomUserPrincipal implements UserDetails {
 
     private final String email;
-
     private final String password;
-
     private final String userId;
-
-    private final Collection<? extends GrantedAuthority>
-            authorities;
+    private final Collection<? extends GrantedAuthority> authorities;
 
     @NotNull
     @Override

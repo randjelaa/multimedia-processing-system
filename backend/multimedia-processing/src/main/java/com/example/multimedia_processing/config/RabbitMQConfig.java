@@ -1,53 +1,48 @@
 package com.example.multimedia_processing.config;
 
 import org.springframework.amqp.core.Queue;
+import org.springframework.amqp.support.converter.JacksonJsonMessageConverter;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.amqp.support.converter.JacksonJsonMessageConverter;
 
 @Configuration
 public class RabbitMQConfig {
 
-    public static final String THUMBNAIL_QUEUE =
-            "thumbnail.queue";
+    @Value("${rabbitmq.queue.thumbnail}")
+    private String thumbnailQueueName;
 
-    public static final String AUDIO_QUEUE =
-            "audio.queue";
+    @Value("${rabbitmq.queue.audio}")
+    private String audioQueueName;
 
-    public static final String TRANSCODE_QUEUE =
-            "transcode.queue";
+    @Value("${rabbitmq.queue.transcode}")
+    private String transcodeQueueName;
 
-    public static final String RESULTS_QUEUE =
-            "jobs.results.queue";
+    @Value("${rabbitmq.queue.results}")
+    private String resultsQueueName;
 
     @Bean
     public Queue thumbnailQueue() {
-
-        return new Queue(THUMBNAIL_QUEUE);
+        return new Queue(thumbnailQueueName);
     }
 
     @Bean
     public Queue audioQueue() {
-
-        return new Queue(AUDIO_QUEUE);
+        return new Queue(audioQueueName);
     }
 
     @Bean
     public Queue transcodeQueue() {
-
-        return new Queue(TRANSCODE_QUEUE);
+        return new Queue(transcodeQueueName);
     }
 
     @Bean
     public Queue resultsQueue() {
-
-        return new Queue(RESULTS_QUEUE);
+        return new Queue(resultsQueueName);
     }
 
     @Bean
-    public JacksonJsonMessageConverter
-    messageConverter() {
-
+    public JacksonJsonMessageConverter messageConverter() {
         return new JacksonJsonMessageConverter();
     }
 }

@@ -5,13 +5,13 @@ import com.example.multimedia_processing.entity.Job;
 import com.example.multimedia_processing.entity.JobStatus;
 import com.example.multimedia_processing.entity.JobType;
 import com.example.multimedia_processing.entity.User;
+import com.example.multimedia_processing.messaging.QueueProducer;
 import com.example.multimedia_processing.repository.JobRepository;
 import com.example.multimedia_processing.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -47,10 +47,7 @@ public class JobService {
                         type
                 );
 
-        queueProducer.sendJob(
-                message,
-                job.getType()
-        );
+        queueProducer.sendJob(message, job.getType());
 
         return savedJob;
     }
@@ -93,8 +90,9 @@ public class JobService {
         jobRepository.save(job);
     }
 
-    public void abortJob(UUID jobId) {
-        Job job = jobRepository.findById(jobId)
+    public void abortJob(UUID jobId, UUID userId) {
+        Job job = jobRepository
+                .findByIdAndUser_Id(jobId, userId)
                 .orElseThrow(() -> new RuntimeException("Job not found"));
 
         if (job.getStatus() == JobStatus.DONE ||
@@ -110,11 +108,13 @@ public class JobService {
         queueProducer.sendAbortSignal(jobId.toString());
     }
 
-    public Job getJobById(UUID id) {
-        return  jobRepository.findById(id).orElseThrow();
+    public Job getJobByIdAndUserId(UUID jobId, UUID userId) {
+        return jobRepository
+                .findByIdAndUser_Id(jobId, userId)
+                .orElseThrow(() -> new RuntimeException("Job not found"));
     }
 
-    public List<Job> getAll() {
-        return jobRepository.findAll();
-    }
+//    public List<Job> getAll() {
+//        return jobRepository.findAll();
+//    }
 }

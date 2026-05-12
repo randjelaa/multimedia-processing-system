@@ -21,26 +21,12 @@ public class MinioService {
     public String uploadFile(MultipartFile file) {
 
         try {
-
-            boolean exists = minioClient.bucketExists(
-                    BucketExistsArgs.builder()
-                            .bucket(bucket)
-                            .build()
-            );
-
+            boolean exists = minioClient.bucketExists(BucketExistsArgs.builder().bucket(bucket).build());
             if (!exists) {
-
-                minioClient.makeBucket(
-                        MakeBucketArgs.builder()
-                                .bucket(bucket)
-                                .build()
-                );
+                minioClient.makeBucket(MakeBucketArgs.builder().bucket(bucket).build());
             }
 
-            String objectName =
-                    UUID.randomUUID()
-                            + "-"
-                            + file.getOriginalFilename();
+            String objectName = UUID.randomUUID() + "-" + file.getOriginalFilename();
 
             minioClient.putObject(
                     PutObjectArgs.builder()
@@ -58,7 +44,6 @@ public class MinioService {
             return objectName;
 
         } catch (Exception e) {
-
             throw new RuntimeException(e);
         }
     }

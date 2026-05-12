@@ -1,9 +1,10 @@
 package com.example.multimedia_processing.controller;
 
+import com.example.multimedia_processing.dto.FileDownloadData;
 import com.example.multimedia_processing.entity.Job;
 import com.example.multimedia_processing.entity.JobStatus;
-import com.example.multimedia_processing.entity.JobType;
 import com.example.multimedia_processing.security.CustomUserPrincipal;
+import com.example.multimedia_processing.service.FileService;
 import com.example.multimedia_processing.service.JobService;
 import com.example.multimedia_processing.service.MinioService;
 import io.minio.StatObjectResponse;
@@ -27,7 +28,7 @@ import java.util.UUID;
 public class FileController {
 
     private final MinioService minioService;
-
+    private final FileService fileService;
     private final JobService jobService;
 
     @PostMapping("/upload")
@@ -37,10 +38,7 @@ public class FileController {
             Authentication authentication
     ) {
 
-        CustomUserPrincipal principal =
-                (CustomUserPrincipal)
-                        authentication.getPrincipal();
-
+        CustomUserPrincipal principal = (CustomUserPrincipal) authentication.getPrincipal();
         UUID userId = UUID.fromString(principal.getUserId());
 
         String objectKey = minioService.uploadFile(file);
@@ -54,46 +52,25 @@ public class FileController {
     }
 
     @GetMapping("/download/{jobId}")
-    public ResponseEntity<Resource> downloadProcessedFile(@PathVariable UUID jobId) {
-        Job job = jobService.getJobById(jobId);
+    public ResponseEntity<Resource> downloadProcessedFile(
+            @PathVariable UUID jobId,
+            Authentication authentication
+    ) {
 
-        if (job == null) {
-            return ResponseEntity.notFound().build();
-        }
+        CustomUserPrincipal principal = (CustomUserPrincipal) authentication.getPrincipal();
+        UUID userId = UUID.fromString(principal.getUserId());
 
-        if (!JobStatus.DONE.equals(job.getStatus())) {
-            return ResponseEntity.badRequest().build();
-        }
+        FileDownloadData file = fileService.downloadProcessedFile(jobId, userId);
 
-        if (job.getResultFileKey() == null || job.getResultFileKey().isEmpty()) {
-            return ResponseEntity.internalServerError().build();
-        }
-
-        try {
-            InputStream stream = minioService.getFile(job.getResultFileKey());
-            StatObjectResponse metadata = minioService.getFileMetadata(job.getResultFileKey());
-
-            String extension = switch (job.getType()) {
-                case THUMBNAIL -> ".jpg";
-                case AUDIO -> ".mp3";
-                case TRANSCODE -> ".mp4";
-                default -> "";
-            };
-
-            String baseName = job.getOriginalFileName().contains(".")
-                    ? job.getOriginalFileName().substring(0, job.getOriginalFileName().lastIndexOf('.'))
-                    : job.getOriginalFileName();
-            String finalFileName = baseName + "_" + job.getType().toString().toLowerCase() + extension;
-
-            return ResponseEntity.ok()
-                    .contentType(MediaType.parseMediaType(metadata.contentType()))
-                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + finalFileName + "\"")
-                    .contentLength(metadata.size())
-                    .body(new InputStreamResource(stream));
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.internalServerError().build();
-        }
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(file.getContentType()))
+                .header(
+                        HttpHeaders.CONTENT_DISPOSITION,
+                        "attachment; filename=\"" +
+                                file.getFileName() +
+                                "\""
+                )
+                .contentLength(file.getContentLength())
+                .body(file.getResource());
     }
 }

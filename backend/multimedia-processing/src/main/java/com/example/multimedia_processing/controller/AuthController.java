@@ -18,15 +18,11 @@ public class AuthController {
     @PostMapping("/register")
     @ResponseStatus(HttpStatus.CREATED)
     public void register(@RequestBody RegisterRequest request) {
-
         authService.register(request);
     }
 
     @PostMapping("/login")
-    public AuthResponse login(
-            @RequestBody LoginRequest request
-    ) {
-
+    public AuthResponse login(@RequestBody LoginRequest request) {
         return authService.login(request);
     }
 }

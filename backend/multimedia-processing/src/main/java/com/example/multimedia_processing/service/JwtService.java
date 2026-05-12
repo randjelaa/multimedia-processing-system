@@ -1,8 +1,10 @@
-package com.example.multimedia_processing.security;
+package com.example.multimedia_processing.service;
 
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
@@ -16,31 +18,29 @@ import java.util.UUID;
 @Service
 public class JwtService {
 
-    private static final String SECRET =
-            "mysecretkeymysecretkeymysecretkey123456";
+    @Value("${jwt.secret}")
+    private String secret;
 
-    private final Key key =
-            Keys.hmacShaKeyFor(SECRET.getBytes());
+    @Value("${jwt.expiration-ms}")
+    private long expirationMs;
 
-    public String generateToken(
-            UUID userId,
-            String email
-    ) {
+    private Key key;
+
+    @PostConstruct
+    public void init() {
+        this.key = Keys.hmacShaKeyFor(secret.getBytes());
+    }
+
+    public String generateToken(UUID userId, String email) {
 
         Map<String, Object> claims = new HashMap<>();
-
         claims.put("userId", userId.toString());
 
         return Jwts.builder()
                 .claims(claims)
                 .subject(email)
                 .issuedAt(new Date())
-                .expiration(
-                        new Date(
-                                System.currentTimeMillis()
-                                        + 1000 * 60 * 60 * 24
-                        )
-                )
+                .expiration(new Date(System.currentTimeMillis() + expirationMs))
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
     }
@@ -55,17 +55,17 @@ public class JwtService {
                 .getSubject();
     }
 
-    public UUID extractUserId(String token) {
-
-        String userId = Jwts.parser()
-                .verifyWith((SecretKey) key)
-                .build()
-                .parseSignedClaims(token)
-                .getPayload()
-                .get("userId", String.class);
-
-        return UUID.fromString(userId);
-    }
+//    public UUID extractUserId(String token) {
+//
+//        String userId = Jwts.parser()
+//                .verifyWith((SecretKey) key)
+//                .build()
+//                .parseSignedClaims(token)
+//                .getPayload()
+//                .get("userId", String.class);
+//
+//        return UUID.fromString(userId);
+//    }
 
     public boolean isTokenValid(
             String token,
@@ -73,7 +73,6 @@ public class JwtService {
     ) {
 
         String email = extractEmail(token);
-
         return email.equals(userDetails.getUsername());
     }
 }

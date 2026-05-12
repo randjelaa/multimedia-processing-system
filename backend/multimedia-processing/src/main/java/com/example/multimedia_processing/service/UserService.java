@@ -11,8 +11,8 @@ public class UserService {
 
     private final UserRepository userRepository;
 
-    public User save(User user) {
-        return userRepository.save(user);
+    public void save(User user) {
+        userRepository.save(user);
     }
 
     public boolean existsByEmail(String email) {
@@ -20,9 +20,6 @@ public class UserService {
     }
 
     public User findByEmail(String email) {
-
-        return userRepository.findByEmail(email)
-                .orElseThrow(() ->
-                        new RuntimeException("User not found"));
+        return userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
     }
 }
