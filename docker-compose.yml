@@ -146,18 +146,18 @@ services:
     networks:
       - multimedia-network
 
-
-  frontend:
+  nginx:
     build:
       context: ./frontend/multimedia-processing
+      dockerfile: Dockerfile
 
-    container_name: multimedia-frontend
+    container_name: multimedia-nginx
+
+    ports:
+      - "80:80"
 
     depends_on:
       - backend
-
-    ports:
-      - "4200:80"
 
     networks:
       - multimedia-network
