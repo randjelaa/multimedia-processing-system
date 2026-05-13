@@ -48,6 +48,29 @@ services:
     networks:
       - multimedia-network
 
+  
+  backend:
+    build:
+      context: ./backend/multimedia-processing
+
+    container_name: multimedia-backend
+
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+      mysql:
+        condition: service_started
+
+      minio:
+        condition: service_started
+
+    ports:
+      - "8080:8080"
+
+    networks:
+      - multimedia-network
+
 
   thumbnail-worker:
     build:
@@ -119,6 +142,22 @@ services:
       MINIO_SECRET_KEY: password
 
       MINIO_BUCKET: uploads
+
+    networks:
+      - multimedia-network
+
+
+  frontend:
+    build:
+      context: ./frontend/multimedia-processing
+
+    container_name: multimedia-frontend
+
+    depends_on:
+      - backend
+
+    ports:
+      - "4200:80"
 
     networks:
       - multimedia-network
