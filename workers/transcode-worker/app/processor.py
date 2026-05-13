@@ -6,8 +6,8 @@ from minio_client import client
 from config import BUCKET
 from rabbitmq_sender import send_progress
 
-DOWNLOAD_DIR = "C:/temp/downloads"
-PROCESSED_DIR = "C:/temp/processed"
+DOWNLOAD_DIR = "/tmp/downloads"
+PROCESSED_DIR = "/tmp/processed"
 
 active_processes = {}
 

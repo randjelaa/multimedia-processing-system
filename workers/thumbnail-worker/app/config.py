@@ -5,12 +5,12 @@ load_dotenv()
 
 RABBITMQ_HOST = os.getenv(
     "RABBITMQ_HOST",
-    "localhost"
+    "rabbitmq"
 )
 
 MINIO_HOST = os.getenv(
     "MINIO_HOST",
-    "localhost:9000"
+    "minio:9000"
 )
 
 MINIO_ACCESS_KEY = os.getenv(

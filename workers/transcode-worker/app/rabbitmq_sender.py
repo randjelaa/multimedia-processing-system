@@ -1,33 +1,53 @@
 import json
-from rabbitmq import channel
+import pika
+from config import RABBITMQ_HOST
 
-def send_progress(job_id,progress):
+
+QUEUE = "jobs.results.queue"
+
+
+def _publish(message: dict):
+    connection = None
+    try:
+        connection = pika.BlockingConnection(
+            pika.ConnectionParameters(host=RABBITMQ_HOST)
+        )
+
+        channel = connection.channel()
+
+        channel.queue_declare(queue=QUEUE, durable=True)
+
+        channel.basic_publish(
+            exchange='',
+            routing_key=QUEUE,
+            body=json.dumps(message),
+            properties=pika.BasicProperties(
+                delivery_mode=2  # make message persistent
+            )
+        )
+
+    finally:
+        if connection and connection.is_open:
+            connection.close()
+
+
+def send_progress(job_id, progress):
     message = {
         "jobId": job_id,
         "status": "PROCESSING",
         "progressPercentage": progress
     }
-
-    channel.basic_publish(
-        exchange='',
-        routing_key='jobs.results.queue',
-        body=json.dumps(message)
-    )
+    _publish(message)
 
 
-def send_done(job_id,result_key):
+def send_done(job_id, result_key):
     message = {
         "jobId": job_id,
         "status": "DONE",
         "resultFileKey": result_key,
         "progressPercentage": 100
     }
-
-    channel.basic_publish(
-        exchange='',
-        routing_key='jobs.results.queue',
-        body=json.dumps(message)
-    )
+    _publish(message)
 
 
 def send_failed(job_id):
@@ -36,9 +56,4 @@ def send_failed(job_id):
         "status": "FAILED",
         "progressPercentage": 0
     }
-
-    channel.basic_publish(
-        exchange='',
-        routing_key='jobs.results.queue',
-        body=json.dumps(message)
-    )
+    _publish(message)

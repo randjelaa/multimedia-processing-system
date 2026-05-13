@@ -14,13 +14,24 @@ services:
       - "3307:3306"
     volumes:
       - mysql_data:/var/lib/mysql
+    networks:
+      - multimedia-network
 
   rabbitmq:
     image: rabbitmq:3-management
     container_name: multimedia-rabbitmq
+
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_running"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
     ports:
       - "5672:5672"
       - "15672:15672"
+    networks:
+      - multimedia-network
 
   minio:
     image: minio/minio
@@ -34,7 +45,88 @@ services:
       - "9001:9001"
     volumes:
       - minio_data:/data
+    networks:
+      - multimedia-network
+
+
+  thumbnail-worker:
+    build:
+      context: ./workers/thumbnail-worker
+
+    container_name: thumbnail-worker
+
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      minio:
+        condition: service_started
+
+    environment:
+      RABBITMQ_HOST: rabbitmq
+
+      MINIO_HOST: minio:9000
+      MINIO_ACCESS_KEY: admin
+      MINIO_SECRET_KEY: password
+
+      MINIO_BUCKET: uploads
+
+    networks:
+      - multimedia-network
+
+
+  audio-worker:
+    build:
+      context: ./workers/audio-worker
+
+    container_name: audio-worker
+
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      minio:
+        condition: service_started
+
+    environment:
+      RABBITMQ_HOST: rabbitmq
+
+      MINIO_HOST: minio:9000
+      MINIO_ACCESS_KEY: admin
+      MINIO_SECRET_KEY: password
+
+      MINIO_BUCKET: uploads
+
+    networks:
+      - multimedia-network
+
+
+  transcode-worker:
+    build:
+      context: ./workers/transcode-worker
+
+    container_name: transcode-worker
+
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      minio:
+        condition: service_started
+
+    environment:
+      RABBITMQ_HOST: rabbitmq
+
+      MINIO_HOST: minio:9000
+      MINIO_ACCESS_KEY: admin
+      MINIO_SECRET_KEY: password
+
+      MINIO_BUCKET: uploads
+
+    networks:
+      - multimedia-network
 
 volumes:
   mysql_data:
   minio_data:
+
+
+networks:
+  multimedia-network:
